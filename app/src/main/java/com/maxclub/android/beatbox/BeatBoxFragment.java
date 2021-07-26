@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -46,6 +47,24 @@ public class BeatBoxFragment extends Fragment {
 
         binding.recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
         binding.recyclerView.setAdapter(new SoundAdapter(mBeatBox.getSounds()));
+        ViewTreeObserver observer = binding.rateSlider.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                float value = binding.rateSlider.getValue();
+                mBeatBox.setRate(value);
+                binding.rateTextView.setText(getString(R.string.rate_text,
+                        String.valueOf(round(value, 1))));
+            }
+        });
+        binding.rateTextView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                binding.rateSlider.setValue(1.0f);
+
+                return true;
+            }
+        });
 
         return binding.getRoot();
     }
@@ -54,6 +73,11 @@ public class BeatBoxFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         mBeatBox.release();
+    }
+
+    private static double round(double value, int places) {
+        double scale = Math.pow(10, places);
+        return Math.round(value * scale) / scale;
     }
 
     private class SoundHolder extends RecyclerView.ViewHolder {
